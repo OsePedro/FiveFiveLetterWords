@@ -23,14 +23,16 @@ allSolutions words
   anagrams = M.fromListWith (++) $ zip (map wordKey words) $ map (:[]) words
   charHist = charHistogram words
 
-  wordSets =
-    [ words
-    | let charKeys = sortBy (compare `on` (charHist M.!)) $ M.keys charHist
-    , let anagramKeys = sortBy  (compare `on` minCharFreq charHist) $
-                                M.keys anagrams
-    , keys <- keySets 5 charKeys anagramKeys
-    , words <- traverse (anagrams M.!) keys
-    ]
+  wordSets =  [ words
+              | keys <- keySets 5 charKeys anagramKeys
+              , words <- traverse (anagrams M.!) keys
+              ]
+    where
+    charKeys = sortBy (compare `on` (charHist M.!)) $ M.keys charHist
+    anagramKeys0 = M.keys anagrams
+    anagramKeys =
+      snd <$> (sortBy (compare `on` fst) $
+                      zip (minCharFreq charHist <$> anagramKeys0) anagramKeys0)
 
   keySets 0 _ _ = [[]]
   keySets n charKeys anagramKeys =
@@ -55,11 +57,12 @@ intHistogram :: [Int] -> M.IntMap Int
 intHistogram = M.fromListWith (+) . (`zip` repeat 1)
 
 minCharFreq :: M.IntMap Int -> Int -> Int
-minCharFreq _ 0 = maxBound
-minCharFreq charHist key =
-  min (charHist M.! (1 `shiftL` charBit)) $
-      minCharFreq charHist (clearBit key charBit)
-  where charBit = countTrailingZeros key
+minCharFreq charHist = minimum . map (charHist M.!) . keyBits
+
+keyBits :: Int -> [Int]
+keyBits = unfoldr $ \key ->
+  let n = countTrailingZeros key
+  in  if key==0 then Nothing else Just (1 `shiftL` n, clearBit key n)
 
 wordKey :: String -> Int
 wordKey = foldl' (.|.) 0 . map charKey
