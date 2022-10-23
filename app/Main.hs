@@ -4,8 +4,8 @@ import Data.Bits
 import qualified Data.ByteString.Char8 as BS
 import Data.Char
 import Data.Function
-import Data.List
 import qualified Data.IntMap.Strict as M
+import Data.List
 
 main = do
   words <-  filter acceptWord . map BS.unpack . BS.words <$>
