@@ -9,6 +9,7 @@ author:             Ose Pedro
 executable FiveFiveLetterWords
     main-is:          Main.hs
     build-depends:    base >= 4.9 && < 4.15,
+                      bytestring >= 0.10 && < 0.11,
                       containers >= 0.6 && < 0.7
     hs-source-dirs:   app
     default-language: Haskell2010

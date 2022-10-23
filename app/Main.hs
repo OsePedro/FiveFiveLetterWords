@@ -1,14 +1,15 @@
 module Main(main) where
 
 import Data.Bits
+import qualified Data.ByteString.Char8 as BS
 import Data.Char
 import Data.Function
 import Data.List
 import qualified Data.IntMap.Strict as M
-import qualified Data.String as S(words)
 
 main = do
-  words <- filter acceptWord . S.words <$> (readFile "words_alpha.txt")
+  words <-  filter acceptWord . map BS.unpack . BS.words <$>
+            BS.readFile "words_alpha.txt"
   let solutions = allSolutions words
   sequence_ $ map (putStrLn . intercalate ", ") solutions
   putStrLn $ "Found "++show (length solutions)++" solutions"
