@@ -1,0 +1,75 @@
+module Main(main) where
+
+import Data.Bits
+import Data.Char
+import Data.Function
+import Data.List
+import qualified Data.IntMap.Strict as M
+import qualified Data.String as S(words)
+
+main = do
+  words <- filter acceptWord . S.words <$> (readFile "words_alpha.txt")
+  let solutions = allSolutions words
+  sequence_ $ map (putStrLn . intercalate ", ") solutions
+  putStrLn $ "Found "++show (length solutions)++" solutions"
+
+setSize = 5
+wordLength = 5
+
+allSolutions :: [String] -> [[String]]
+allSolutions words
+  | maximum (intHistogram $ M.elems charHist) == 1 = wordSets
+  | otherwise = error "This algorithm assumes that all letter frequencies are \
+                      \distinct."
+  where
+  anagrams = M.fromListWith (++) $ zip (map wordKey words) $ map (:[]) words
+  charHist = charHistogram words
+
+  wordSets =
+    [ words
+    | let charKeys = sortBy (compare `on` (charHist M.!)) $ M.keys charHist
+    , let anagramKeys = sortBy  (compare `on` minCharFreq charHist) $
+                                M.keys anagrams
+    , keys <- keySets setSize charKeys anagramKeys
+    , words <- sequence $ (anagrams M.!) <$> keys
+    ]
+
+  keySets 0 _ _ = [[]]
+  keySets n charKeys anagramKeys =
+    [ key:keySubset
+    | (key:nextKeys) <- tails anagramKeys
+    , hasInfrequentChar key charKeys
+    , let isDisjoint = (==0) . (key .&.)
+    , let disjointNextKeys = filter isDisjoint nextKeys
+    , let nextCharKeys = filter isDisjoint charKeys
+    , keySubset <- keySets (n-1) nextCharKeys disjointNextKeys
+    ]
+
+  hasInfrequentChar anagramKey (c0:c1:_) = (anagramKey .&. (c0 .|. c1)) /= 0
+
+charHistogram :: [String] -> M.IntMap Int
+charHistogram = foldl' (M.unionWith (+)) M.empty . map charHistogram1
+
+charHistogram1 :: String -> M.IntMap Int
+charHistogram1 = intHistogram . map charKey
+
+intHistogram :: [Int] -> M.IntMap Int
+intHistogram = M.fromListWith (+) . (`zip` repeat 1)
+
+minCharFreq :: M.IntMap Int -> Int -> Int
+minCharFreq _ 0 = maxBound
+minCharFreq charHist key =
+  min (charHist M.! (1 `shiftL` cBit)) $
+      minCharFreq charHist (clearBit key cBit)
+  where cBit = countTrailingZeros key
+
+wordKey :: String -> Int
+wordKey = foldl' (.|.) 0 . map charKey
+
+charKey :: Char -> Int
+charKey = (1 `shiftL`) . subtract 65 . fromEnum . toUpper
+
+acceptWord :: String -> Bool
+acceptWord word =
+  length word == wordLength && all isAlpha word &&
+  maximum (charHistogram1 word) == 1
