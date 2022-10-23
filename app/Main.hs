@@ -13,9 +13,6 @@ main = do
   sequence_ $ map (putStrLn . intercalate ", ") solutions
   putStrLn $ "Found "++show (length solutions)++" solutions"
 
-setSize = 5
-wordLength = 5
-
 allSolutions :: [String] -> [[String]]
 allSolutions words
   | maximum (intHistogram $ M.elems charHist) == 1 = wordSets
@@ -30,7 +27,7 @@ allSolutions words
     | let charKeys = sortBy (compare `on` (charHist M.!)) $ M.keys charHist
     , let anagramKeys = sortBy  (compare `on` minCharFreq charHist) $
                                 M.keys anagrams
-    , keys <- keySets setSize charKeys anagramKeys
+    , keys <- keySets 5 charKeys anagramKeys
     , words <- traverse (anagrams M.!) keys
     ]
 
@@ -71,5 +68,5 @@ charKey = (1 `shiftL`) . subtract 65 . fromEnum . toUpper
 
 acceptWord :: String -> Bool
 acceptWord word =
-  length word == wordLength && all isAlpha word &&
+  length word == 5 && all isAlpha word &&
   maximum (charHistogram1 word) == 1
