@@ -31,7 +31,7 @@ allSolutions words
     , let anagramKeys = sortBy  (compare `on` minCharFreq charHist) $
                                 M.keys anagrams
     , keys <- keySets setSize charKeys anagramKeys
-    , words <- sequence $ (anagrams M.!) <$> keys
+    , words <- traverse (anagrams M.!) keys
     ]
 
   keySets 0 _ _ = [[]]
