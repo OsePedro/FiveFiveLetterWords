@@ -20,22 +20,18 @@ allSolutions words = wordSets
   anagrams = M.fromListWith (++) $ zip (map wordKey words) $ map (:[]) words
   charHist = charHistogram words
 
-  wordSets =  [ words
-              | keys <- keySets 5 charKeys anagramKeys
-              , words <- traverse (anagrams M.!) keys
-              ]
-    where           -- charKey breaks ties in freqCharKey
-    charKeys =  let freqCharKey charKey = (charHist M.! charKey, charKey)
-                in sortBy (compare `on` freqCharKey) $ M.keys charHist
-    anagramKeys0 = M.keys anagrams
-    anagramKeys =
-      snd <$> (sortBy (compare `on` fst) $
-                      zip (minCharFreq charHist <$> anagramKeys0) anagramKeys0)
+  wordSets =  [ words | keys <- keySets 5 charKeys angrmKeys
+                      , words <- traverse (anagrams M.!) keys]
+    where
+    charKeys = sortBy (compare `on` freqCharKey charHist) $ M.keys charHist
+    angrmKeys0 = M.keys anagrams
+    angrmKeys = let mfcks = minFreqCharKey charHist <$> angrmKeys0
+                in  snd <$> (sortBy (compare `on` fst) $ zip mfcks angrmKeys0)
 
   keySets 0 _ _ = [[]]
-  keySets n charKeys anagramKeys =
+  keySets n charKeys angrmKeys =
     [ angrmKey:angrmKeySubset
-    | (angrmKey:nextAngrmKeys) <- tails anagramKeys
+    | (angrmKey:nextAngrmKeys) <- tails angrmKeys
     , hasInfrequentChar charKeys angrmKey
     , let isDisjoint = (==0) . (angrmKey .&.)
     , let disjointNextKeys = filter isDisjoint nextAngrmKeys
@@ -54,8 +50,12 @@ charHistogram1 = intHistogram . map charKey
 intHistogram :: [Int] -> M.IntMap Int
 intHistogram = M.fromListWith (+) . (`zip` repeat 1)
 
-minCharFreq :: M.IntMap Int -> Int -> Int
-minCharFreq charHist = minimum . map (charHist M.!) . keyBits
+-- Uses charKey to break frequency ties
+freqCharKey :: M.IntMap Int -> Int -> (Int,Int)
+freqCharKey charHist charKey = (charHist M.! charKey, charKey)
+
+minFreqCharKey :: M.IntMap Int -> Int -> (Int,Int)
+minFreqCharKey charHist = minimum . map (freqCharKey charHist) . keyBits
 
 keyBits :: Int -> [Int]
 keyBits = unfoldr $ \key ->
