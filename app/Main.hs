@@ -15,10 +15,7 @@ main = do
   putStrLn $ "Found "++show (length solutions)++" solutions"
 
 allSolutions :: [String] -> [[String]]
-allSolutions words
-  | maximum (intHistogram $ M.elems charHist) == 1 = wordSets
-  | otherwise = error "This algorithm assumes that all letter frequencies are \
-                      \distinct."
+allSolutions words = wordSets
   where
   anagrams = M.fromListWith (++) $ zip (map wordKey words) $ map (:[]) words
   charHist = charHistogram words
@@ -27,8 +24,9 @@ allSolutions words
               | keys <- keySets 5 charKeys anagramKeys
               , words <- traverse (anagrams M.!) keys
               ]
-    where
-    charKeys = sortBy (compare `on` (charHist M.!)) $ M.keys charHist
+    where           -- charKey breaks ties in freqCharKey
+    charKeys =  let freqCharKey charKey = (charHist M.! charKey, charKey)
+                in sortBy (compare `on` freqCharKey) $ M.keys charHist
     anagramKeys0 = M.keys anagrams
     anagramKeys =
       snd <$> (sortBy (compare `on` fst) $
@@ -36,16 +34,16 @@ allSolutions words
 
   keySets 0 _ _ = [[]]
   keySets n charKeys anagramKeys =
-    [ key:keySubset
-    | (key:nextKeys) <- tails anagramKeys
-    , hasInfrequentChar key charKeys
-    , let isDisjoint = (==0) . (key .&.)
-    , let disjointNextKeys = filter isDisjoint nextKeys
+    [ angrmKey:angrmKeySubset
+    | (angrmKey:nextAngrmKeys) <- tails anagramKeys
+    , hasInfrequentChar charKeys angrmKey
+    , let isDisjoint = (==0) . (angrmKey .&.)
+    , let disjointNextKeys = filter isDisjoint nextAngrmKeys
     , let nextCharKeys = filter isDisjoint charKeys
-    , keySubset <- keySets (n-1) nextCharKeys disjointNextKeys
+    , angrmKeySubset <- keySets (n-1) nextCharKeys disjointNextKeys
     ]
 
-  hasInfrequentChar anagramKey (c0:c1:_) = (anagramKey .&. (c0 .|. c1)) /= 0
+  hasInfrequentChar (c0:c1:_) anagramKey = ((c0 .|. c1) .&. anagramKey) /= 0
 
 charHistogram :: [String] -> M.IntMap Int
 charHistogram = foldl' (M.unionWith (+)) M.empty . map charHistogram1
