@@ -56,9 +56,9 @@ intHistogram = M.fromListWith (+) . (`zip` repeat 1)
 minCharFreq :: M.IntMap Int -> Int -> Int
 minCharFreq _ 0 = maxBound
 minCharFreq charHist key =
-  min (charHist M.! (1 `shiftL` cBit)) $
-      minCharFreq charHist (clearBit key cBit)
-  where cBit = countTrailingZeros key
+  min (charHist M.! (1 `shiftL` charBit)) $
+      minCharFreq charHist (clearBit key charBit)
+  where charBit = countTrailingZeros key
 
 wordKey :: String -> Int
 wordKey = foldl' (.|.) 0 . map charKey
@@ -68,5 +68,4 @@ charKey = (1 `shiftL`) . subtract 65 . fromEnum . toUpper
 
 acceptWord :: String -> Bool
 acceptWord word =
-  length word == 5 && all isAlpha word &&
-  maximum (charHistogram1 word) == 1
+  length word == 5 && all isAlpha word && maximum (charHistogram1 word) == 1
