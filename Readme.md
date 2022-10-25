@@ -11,14 +11,18 @@ My solution uses the following:
     1. The fact that a valid solution can only have one unused letter, meaning that you can prune the search when you identify two unused letters that are not in any unused letter sets;
     1. Sorting the letter sets in order of increasing minimal letter frequency, so that this pruning method is equivalent to pruning at the first unused letter set that contains neither of the two least frequent unused letters (letter order is used to break frequency ties).
 
-# Build
+# Building and Running
+
+Run
 
 ```
-stack build --local-bin-path bin --copy-bins
+stack install
 ```
 
-# Run
+to build the application and copy it to the `bin` directory, then run
 
 ```
 bin/FiveFiveLetterWords
 ```
+
+to execute it.
