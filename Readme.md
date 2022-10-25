@@ -14,11 +14,11 @@ My solution uses the following:
 # Build
 
 ```
-cabal build
+stack build --local-bin-path bin --copy-bins
 ```
 
 # Run
 
 ```
-cabal run
+bin/FiveFiveLetterWords
 ```
