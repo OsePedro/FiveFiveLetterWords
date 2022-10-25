@@ -14,9 +14,10 @@ readWords = filter  acceptWord . map BS.unpack . BS.words <$>
                     BS.readFile "words_alpha.txt"
 
 testTrie = do
-  words <- readWords
-  putStrLn $ "Found " ++ show (length words) ++ " words"
-  let someWords = take 1000 $ words
+  let words = ["abcde","abcdf","abcdg","abdef","vwxyz"]
+  -- words <- readWords
+  -- putStrLn $ "Found " ++ show (length words) ++ " words"
+  let someWords = {-take 1000 $ -} words
   let charHist = charHistogram someWords
   let anagrams = groupAnagrams someWords
   let ranker = freqRanker charHist
@@ -212,7 +213,7 @@ eraseAnagramKeyRank akr node = case compare fr $ freqRank node of
   GT -> eraseFromChildren
   where
   (fr,akrTail)= fromJust $ popFreqRank akr
-  eraseFromChildren
+  eraseFromChildren -- this is wrong!!!
     | isEmptyTrie ct = lt
     | isEmptyTrie lt = ct
     | otherwise = TrieNode {freqRank=fr, containers=ct, lackers=lt}
